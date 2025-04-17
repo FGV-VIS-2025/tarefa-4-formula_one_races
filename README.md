@@ -9,6 +9,14 @@ Para criar a base de dados (utilizando histórico do Ergast e os dados mais rece
 Para apenas atualizar a base de dados com as últimas corridas:
 
     python .\manager\main.py update .\static\data\
+    
+# Svelte
+
+Para rodar o svelte localmente: 
+
+    npm run dev
+
+Utilize opcionalmente a tag `--open` para abrir direto no navegador
 
 ## Assignment
 
