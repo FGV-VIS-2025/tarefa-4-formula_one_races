@@ -2,3 +2,5 @@
 
 /env
 /exploration/data
+
+__pycache__/
