@@ -1,3 +1,12 @@
+# Python
+
+/env
+/exploration/data
+
+__pycache__/
+
+# Svelte
+
 .DS_Store
 node_modules
 /build
