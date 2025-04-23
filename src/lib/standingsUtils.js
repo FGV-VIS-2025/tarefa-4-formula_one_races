@@ -28,11 +28,12 @@ export function getRounds(f1data, season) {
     .sort((a, b) => a - b);
 }
 
-export function getEntities(f1data, season, mode) {
+export function getEntities(f1data, season, mode, round) {
   let standings = standingsBySeason(f1data, season, mode);
   let entities = {};
   [...new Set(standings.map((d) => d[mode]))].forEach((d) => {
-    let entity = standings.filter((e) => e[mode] === d)[0];
+    let entity = standings.filter((e) => e[mode] === d && e.round == round)[0];
+    if (!entity) return;
     entities[d] = {
       name: entity[mode],
       points: entity.points,
@@ -41,7 +42,7 @@ export function getEntities(f1data, season, mode) {
       season: entity.season,
       wins: entity.wins,
     };
-    
+  
     let driver = f1data.drivers.filter((e) => e.driverId === entity.driverId)[0];
     let constructor = f1data.constructors.filter((e) => e.constructorId === entity.constructorId)[0];
     if (mode === 'driver') {

@@ -23,13 +23,13 @@
   let standings = [];
   $: standings = standingsBySeason(f1data, season, mode);
 
-  let entities = {};
-  $: entities = getEntities(f1data, season, mode);
-
   let maxRound = 1;
   let currentRound = 1;
   let rounds = [];
   let ranks = [];
+
+  let entities = {};
+  $: entities = getEntities(f1data, season, mode, currentRound);
 
   $: season, maxRound = Math.max(...standings.map(d => d.round));
   $: currentRound = maxRound;
@@ -200,11 +200,12 @@
       .on("click", (event, d) => nameInteraction(d.key, event))
       .transition()
       .duration(config.transitionMs)
-      .attr("opacity", (d) => 
-        clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
+      .attr("opacity", (d) => {
+        return clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
+      }
       )
       .attr("y", (d) => {
-        const last = d.values.find((v) => v.round === rounds[d.values.length - 1]);
+        const last = d.values.find((v) => v.round === currentRound);
         return last ? y(last.position) : y(d.values[d.values.length - 1].position);
       })
       .style("dominant-baseline", "middle");
@@ -236,7 +237,7 @@
         hoveredIndex = -1
     } else if (evt.type === "click") {
         let entity = entities[index]
-        if (!clickedEntitys.includes(entity)) {
+        if (!clickedEntitys.includes(entity.name)) {
             // Add the entity to the clickedEntitys array
             clickedEntitys = [...clickedEntitys, entity.name];
         }
