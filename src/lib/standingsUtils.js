@@ -28,6 +28,35 @@ export function getRounds(f1data, season) {
     .sort((a, b) => a - b);
 }
 
+export function getEntities(f1data, season, mode) {
+  let standings = standingsBySeason(f1data, season, mode);
+  let entities = {};
+  [...new Set(standings.map((d) => d[mode]))].forEach((d) => {
+    let entity = standings.filter((e) => e[mode] === d)[0];
+    entities[d] = {
+      name: entity[mode],
+      points: entity.points,
+      position: entity.position,
+      round: entity.round,
+      season: entity.season,
+      wins: entity.wins,
+    };
+    
+    let driver = f1data.drivers.filter((e) => e.driverId === entity.driverId)[0];
+    let constructor = f1data.constructors.filter((e) => e.constructorId === entity.constructorId)[0];
+    if (mode === 'driver') {
+      entities[d].url = driver.url;
+      entities[d].dateOfBirth = driver.dateOfBirth;
+      entities[d].nationality = driver.nationality
+      entities[d].constructor = constructor.name;
+    } else if (mode === 'constructor') {
+      entities[d].url = constructor.url;
+      entities[d].nationality = constructor.nationality;
+    }
+  });
+  return entities
+}
+
 export function standingsBySeason(f1data, season, labelField) {
   // Recebe (driver OR constructor) standings cru,
   // devolve array ordenado por round, já com

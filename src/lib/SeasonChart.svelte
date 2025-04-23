@@ -1,8 +1,11 @@
 <script>
-  import { onMount, onDestroy } from "svelte";
   import * as d3 from "d3";
-  import { standingsBySeason, getSeasons, getRounds } from "$lib/standingsUtils";
-  import { createChart } from "$lib/charts/lineStandings";
+  import { standingsBySeason, getSeasons, getRounds, getEntities } from "$lib/standingsUtils";
+  import {
+      computePosition,
+      autoPlacement,
+      offset,
+  } from '@floating-ui/dom';
 
   export let f1data = {};
 
@@ -20,6 +23,9 @@
   let standings = [];
   $: standings = standingsBySeason(f1data, season, mode);
 
+  let entities = {};
+  $: entities = getEntities(f1data, season, mode);
+
   let maxRound = 1;
   let currentRound = 1;
   let rounds = [];
@@ -35,6 +41,7 @@
     height: 360,
     margin: { top: 50, right: 140, bottom: 40, left: 50 },
     transitionMs: 500,
+    opacity: 0.3,
   }
 
   const innerW = config.width - config.margin.left - config.margin.right;
@@ -42,6 +49,7 @@
 
   let svg, g, x, y, lineGen;
 
+  // Cria o svg
   $: if (vizContainer) {
     if (svg) {
       svg.remove();
@@ -73,6 +81,9 @@
       .y((d) => y(d.position)); 
   }
 
+  // Atualiza o gráfico
+  let clickedEntitys = [];
+  $: mode, clickedEntitys = []; // Reset clickedEntitys when mode changes
   $: if (vizContainer) {
     let filtered = standings.filter((d) => d.round <= currentRound);
     let groups = d3.group(filtered, (d) => d[mode]);
@@ -146,6 +157,9 @@
       .transition()
       .duration(config.transitionMs)
       .attr("stroke", (d, i) => d3.schemeTableau10[i % 10])
+      .attr("opacity", (d) => 
+        clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
+      )
       .attr("d", (d) => lineGen(d.values));
 
     const circleEnter = lineGroup
@@ -165,20 +179,30 @@
       .attr("cy", (d) => y(d.data.position))
       .transition()
       .duration(config.transitionMs)
+      .attr("opacity", (d) => 
+        clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
+      )
       .attr("cx", (d) => x(d.data.round));
-
-    const labels = g.selectAll(".end-label").data(series, (d) => d.key);
-    labels.exit().remove();
-    labels
+      
+      const labels = g.selectAll(".end-label").data(series, (d) => d.key);
+      labels.exit().remove();
+      labels
       .enter()
       .append("text")
       .attr("class", "end-label")
       .merge(labels)
       .style("font-size", "0.75rem")
+      .style('cursor', 'pointer')
       .attr("x", innerW + 5)
       .text((d) => `${d.values[d.values.length - 1].position.toString().padStart(2, '0')} - ${d.key}`)
+      .on("mouseenter", (event, d) => nameInteraction(d.key, event))
+      .on("mouseleave", (event, d) => nameInteraction(d.key, event))
+      .on("click", (event, d) => nameInteraction(d.key, event))
       .transition()
       .duration(config.transitionMs)
+      .attr("opacity", (d) => 
+        clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
+      )
       .attr("y", (d) => {
         const last = d.values.find((v) => v.round === rounds[d.values.length - 1]);
         return last ? y(last.position) : y(d.values[d.values.length - 1].position);
@@ -186,6 +210,46 @@
       .style("dominant-baseline", "middle");
   }
 
+  /************************************************
+  Tooltips
+  ************************************************/
+  let hoveredIndex = -1;
+  $: hoveredEntity = entities[hoveredIndex] ?? hoveredEntity ?? {};
+
+  let cursor = {x: 0, y: 0};
+
+  let entityTooltip;
+  let tooltipPosition = {x: 0, y: 0};
+  async function nameInteraction (index, evt) {
+    let hoveredDot = evt.target;
+    if (evt.type === "mouseenter") {
+        hoveredIndex = index;
+        cursor = {x: evt.x, y: evt.y};
+        tooltipPosition = await computePosition(hoveredDot, entityTooltip, {
+            strategy: "fixed", // because we use position: fixed
+            middleware: [
+                offset(5), // spacing from tooltip to dot
+                autoPlacement() // see https://floating-ui.com/docs/autoplacement
+            ],
+        });
+    } else if (evt.type === "mouseleave") {
+        hoveredIndex = -1
+    } else if (evt.type === "click") {
+        let entity = entities[index]
+        if (!clickedEntitys.includes(entity)) {
+            // Add the entity to the clickedEntitys array
+            clickedEntitys = [...clickedEntitys, entity.name];
+        }
+        else {
+            // Remove the entity from the array
+            clickedEntitys = clickedEntitys.filter(c => c !== entity.name);
+        }
+    }
+  }
+
+  /************************************************
+  Play/Pause
+  ************************************************/
   let playing = false;
   let timer;
   function togglePlay() {
@@ -247,6 +311,32 @@
     bind:this={vizContainer}
     id="season-chart-container"
   />
+  <div class="info tooltip" hidden={hoveredIndex === -1}  bind:this={entityTooltip} style="top: {cursor.y}px; left: {cursor.x}px">
+    <dt>{(mode == 'driver')?'Piloto':'Construtor'}</dt>
+    <dd><a href="{ hoveredEntity.url }" target="_blank">{ hoveredEntity.name }</a></dd>
+    
+    <dt>Nacionalidade</dt>
+    <dd>{ hoveredEntity.nationality }</dd>
+    
+    {#if mode == 'driver'}
+      <dt>Nascimento</dt>
+      <dd>{#if hoveredEntity.dateOfBirth}{d3.timeFormat("%d/%m/%Y")(new Date(hoveredEntity.dateOfBirth))}{/if}</dd>
+
+      <dt>Escuderia</dt>
+      <dd>{ hoveredEntity.constructor }</dd>
+    {/if}
+
+    <dt>Posição</dt>
+    <dd>{ hoveredEntity.position }</dd>
+
+    <dt>Pontos</dt>
+    <dd>{ hoveredEntity.points }</dd>
+
+    <dt>Vitórias</dt>
+    <dd>{ hoveredEntity.wins }</dd>
+
+    <!-- Add: Time, author, lines edited -->
+</div>    
 </div>
 
 <style lang="scss">
@@ -294,4 +384,42 @@
     width: 240px;
     margin: 0 10px;
   }
+
+  .info{
+    display: grid;
+    margin:0;
+    grid-template-columns: 2;
+    background-color: oklch(100% 0% 0 / 80%);
+    box-shadow: 1px 1px 3px 3px gray;
+    border-radius: 5px;
+    backdrop-filter: blur(10px);
+    padding:10px;
+    gap: 5px;
+    width: 250px;
+
+    transition-duration: 500ms;
+    transition-property: opacity, visibility;
+
+    &[hidden]:not(:hover, :focus-within) {
+        opacity: 0;
+        visibility: hidden;
+    }
+    }
+
+    .info dt{
+        grid-column:1;
+        grid-row:auto;
+    }
+
+    .info dd{
+        grid-column:2;
+        grid-row:auto;
+        font-weight: 400;
+    }
+
+    .tooltip{
+        position: fixed;
+        top: 1em;
+        left: 1em;
+    }
 </style>
