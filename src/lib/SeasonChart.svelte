@@ -114,7 +114,7 @@
       .attr("text-anchor", "middle")
       .attr("x", config.width / 2)
       .attr("y", config.height - 6)
-      .text("Round");
+      .text("Corrida");
       
     y.domain([d3.max(standings, (d) => d.position) + 1, 1]);
     svg.selectAll(".y.label").remove();
