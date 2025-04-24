@@ -161,28 +161,6 @@
         clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
       )
       .attr("d", (d) => lineGen(d.values));
-
-    const circleEnter = lineGroup
-      .enter()
-      .append("g")
-      .attr("class", "circle")
-    
-    circleEnter
-      .selectAll("circle")
-      .data((d) => d.values.filter((v) => v.round == 1).map((v) => ({ key: d.key, data: v })))
-      .join("circle")
-      .attr("r", 2)
-      .attr("fill", (d) => {
-        const seriesIndex = series.findIndex((s) => s.key === d.key);
-        return d3.schemeTableau10[seriesIndex % 10];
-      })
-      .attr("cy", (d) => y(d.data.position))
-      .transition()
-      .duration(config.transitionMs)
-      .attr("opacity", (d) => 
-        clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
-      )
-      .attr("cx", (d) => x(d.data.round));
       
       const labels = g.selectAll(".end-label").data(series, (d) => d.key);
       labels.exit().remove();
@@ -341,17 +319,6 @@
 </div>
 
 <style lang="scss">
-  .play-pause-button {
-    padding: 2px 0;
-    cursor: pointer;
-    border: none;
-    background-color: #333;
-    color: #fff;
-    border-radius: 4px;
-    width: 60px;
-    transition: background-color 0.2s ease;
-  }
-
   .graph-container {
     border: 2px solid #ddd;
     border-radius: 8px;
@@ -368,9 +335,58 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
+    gap: 20px;
     width: 100%;
     height: 50px;
+    padding: 0 10px;
+  }
+
+  .controls label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .controls select,
+  .controls .play-pause-button {
+    padding: 10px 16px;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+  }
+  .controls select {
+    width: auto;
+    max-width: 120px;
+  }
+  .controls .play-pause-button {
+    width: 80px;
+  }
+  .controls select:hover,
+  .controls .play-pause-button:hover {
+    background-color: #555;
+  }
+
+  .controls input[type="range"] {
+    -webkit-appearance: none;
+    width: 150px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .controls input[type="range"]::-webkit-slider-thumb,
+  .controls input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -4px;
   }
 
   #season-chart-container {
@@ -381,46 +397,32 @@
     justify-content: center;
   }
 
-  #round-slider {
-    width: 240px;
-    margin: 0 10px;
-  }
-
-  .info{
+  .info {
     display: grid;
-    margin:0;
-    grid-template-columns: 2;
+    grid-template-columns: auto auto;
     background-color: oklch(100% 0% 0 / 80%);
     box-shadow: 1px 1px 3px 3px gray;
     border-radius: 5px;
     backdrop-filter: blur(10px);
-    padding:10px;
+    padding: 10px;
     gap: 5px;
     width: 250px;
-
-    transition-duration: 500ms;
-    transition-property: opacity, visibility;
-
-    &[hidden]:not(:hover, :focus-within) {
-        opacity: 0;
-        visibility: hidden;
-    }
-    }
-
-    .info dt{
-        grid-column:1;
-        grid-row:auto;
-    }
-
-    .info dd{
-        grid-column:2;
-        grid-row:auto;
-        font-weight: 400;
-    }
-
-    .tooltip{
-        position: fixed;
-        top: 1em;
-        left: 1em;
-    }
+    transition: opacity 0.5s, visibility 0.5s;
+  }
+  .info[hidden]:not(:hover, :focus-within) {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .info dt {
+    grid-column: 1;
+  }
+  .info dd {
+    grid-column: 2;
+    font-weight: 400;
+  }
+  .tooltip {
+    position: fixed;
+    top: 1em;
+    left: 1em;
+  }
 </style>
