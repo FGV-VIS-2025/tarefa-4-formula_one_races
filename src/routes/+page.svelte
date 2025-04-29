@@ -35,7 +35,9 @@
   <div class="season-chart">
     <FullScreen text="Expandir Visualização">
       {#if !f1data}
-        <p>Carregando dados...</p>
+        <div class="loading">
+          <p>Carregando dados...</p>
+        </div>
       {:else}
         <SeasonChart {f1data} />
       {/if}
@@ -94,5 +96,13 @@
     max-width: calc(0.8 * 1280px);
     display: flex;
     justify-content: space-around;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
   }
 </style>
