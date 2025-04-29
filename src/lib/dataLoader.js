@@ -12,7 +12,7 @@ import * as d3 from 'd3';
 // static/data/**   (path absoluto na app)
 const DATA_PATH = '/data';
 
-export async function loadData() {
+export async function loadData(base) {
   /* -----------------------------------------------------------------------
     * 1. Lê todos os CSVs em paralelo
     * --------------------------------------------------------------------- */
@@ -23,11 +23,11 @@ export async function loadData() {
     constructorStandings,
     races
   ] = await Promise.all([
-    d3.csv(`${DATA_PATH}/drivers.csv`, d3.autoType),
-    d3.csv(`${DATA_PATH}/driver_standings.csv`, d3.autoType),
-    d3.csv(`${DATA_PATH}/constructors.csv`, d3.autoType),
-    d3.csv(`${DATA_PATH}/constructor_standings.csv`, d3.autoType),
-    d3.csv(`${DATA_PATH}/races.csv`, d3.autoType)
+    d3.csv(`${base}${DATA_PATH}/drivers.csv`, d3.autoType),
+    d3.csv(`${base}${DATA_PATH}/driver_standings.csv`, d3.autoType),
+    d3.csv(`${base}${DATA_PATH}/constructors.csv`, d3.autoType),
+    d3.csv(`${base}${DATA_PATH}/constructor_standings.csv`, d3.autoType),
+    d3.csv(`${base}${DATA_PATH}/races.csv`, d3.autoType)
   ]);
 
   /* -----------------------------------------------------------------------

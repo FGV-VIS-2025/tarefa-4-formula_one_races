@@ -3,10 +3,11 @@
   import SeasonChart from "$lib/SeasonChart.svelte";
   import FullScreen from "$lib/FullScreen.svelte";
   import { loadData } from '$lib/dataLoader.js';
+  import { base } from "$app/paths";
 
   let f1data;
     onMount(async () => {
-    f1data = await loadData();
+    f1data = await loadData(base);
   }); 
 
 </script>

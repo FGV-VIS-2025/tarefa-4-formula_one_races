@@ -6,11 +6,8 @@
       autoPlacement,
       offset,
   } from '@floating-ui/dom';
-  import { createEventDispatcher } from "svelte";
   import CardContainer from "$lib/CardContainer.svelte";
-  import constructorsLogos from "$lib/assets/img/teams/constructors_logos.json";
   import { base } from "$app/paths";
-
 
   export let f1data = {};
 
