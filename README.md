@@ -14,18 +14,23 @@ Todo o _dataset_ é pré-coletado via *scrapers* (APIs Ergast, RaceFans, Wikiped
 
 ## Justificativa de design
 
-Aspecto | Decisão | Alternativas consideradas | Motivo da escolha
-Codificação visual | Linhas conectando posições por corrida; eixo Y invertido (P1 no topo) | Bump chart, heat-map de posições | Linhas mantêm continuidade temporal e são familiares para fãs de F-1 (semelhantes a gráficos de campeonato da TV).
-Cores | Paleta d3.schemeTableau10 cíclica | Cores oficiais das equipes | Escolhemos a paleta Tableau10 pela legibilidade universal e contraste adequado em fundo branco; o logotipo colorido ao fim da linha já comunica a identidade da equipe.
-Miniaturas | Fotos dos pilotos / escudos recortados (clipPath) | Ícones genéricos ou somente texto | A foto reduz o tempo de reconhecimento visual e dá apelo emocional.
-Tooltip & Hover | Tooltip flutuante via Floating-UI, realçando linha ao passar o mouse | Pop-over fixo ou legenda lateral | Tooltip móvel mantém o layout enxuto e evita sobrecarregar rótulos laterais.
-Interações | Slider + Play/Pause + clique para destaque | Scroll para animar, “o-domínio” de seletores múltiplos | A combinação cobre bem tanto desktop quanto mobile e não exige barras de rolagem.
-Animação | d3.transition() (500 ms), timer de 800 ms entre corridas | Sem animação (jump cuts) | Animação enfatiza mudança de posição; velocidade escolhida equilibra compreensão e dinamismo.
-Fullscreen | Componente FullScreen.svelte usando Fullscreen API | Abrir em nova aba ou popup | Mantém o usuário na mesma página e aproveita responsividade do SVG.
+| Aspecto                | Decisão                                                                                  | Alternativas consideradas                                                                                   | Motivo da escolha                                                                                                  |
+|------------------------|------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| Codificação visual     | Linhas conectando posições por corrida; eixo Y invertido (P1 no topo)                    | Linhas mantêm continuidade temporal e são familiares para fãs de F-1 (semelhantes a gráficos de campeonato) | As linhas destacam a trajetória de cada piloto; o eixo invertido coloca o líder sempre no topo, facilitando a leitura. |
+| Cores                  | Paleta `d3.schemeTableau10` cíclica                                                      | Cores oficiais das equipes                                                                                  | O Tableau10 oferece contraste equilibrado em fundo branco; o logotipo colorido ao fim da linha reforça a identidade. |
+| Miniaturas             | Fotos dos pilotos / escudos recortados (`clipPath`)                                      | Ícones genéricos ou círculos coloridos                                                                      | Imagens reais agilizam o reconhecimento e criam apelo emocional para entusiastas do automobilismo.                |
+| Tooltip & Hover        | Tooltip flutuante via Floating-UI, realçando linha ao passar o mouse                     | Pop-over fixo ou legenda lateral                                                                             | Tooltip móvel mantém o layout enxuto, evita distrações e permite visualização imediata de estatísticas detalhadas. |
+| Interações             | Slider + Play/Pause + clique para destaque                                               | Scroll para animar; seletores múltiplos                                                                      | Controle direto via slider e botões é mais intuitivo para “assistir” à evolução e destacar elementos específicos. |
+| Animação               | `d3.transition()` (500 ms), timer de 800 ms entre corridas                              | Sem animação (jump cuts)                                                                                    | Animação suave enfatiza mudança de posições sem cansar o usuário; tempos balanceados para clareza e ritmo.        |
+| Fullscreen             | Componente `FullScreen.svelte` usando Fullscreen API                                     | Abrir em nova aba ou popup                                                                                  | Mantém o usuário na mesma página, aproveita responsividade do SVG e facilita apresentações sem descontinuidades.  |
 
 ## Processo de desenvolvimento & divisão de tarefas
 
-Membro | Principais responsabilidades
-Esdras | • Análise exploratória dos dados (exploration/)  • Efeito de hover e tooltips  • Refatoração geral + reorganização de estilos  • Correção de bugs identificados na fase de teste
-João Villas | • dataLoader.js (carregamento assíncrono e normalização de JSON)  • standingsUtils.js (filtros de temporada, pilotos e métricas)  • Implementação dos dropdowns e slider de filtros  • Scraper para escuderias das equipes  • Cards de estatísticas complementares
-Marcelo Angelo | • Estrutura inicial Svelte (+page.svelte)  • Componente FullScreen.svelte & estilização global  • SeasonChart.svelte (visualização principal)  • Animações das linhas e thumbnails  • Scraper de fotos dos pilotos  • Ajustes de CSS na estilização da visualização e seus componentes
+| Membro            | Principais responsabilidades                                                                                                                                                    |
+|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Esdras            | • Análise exploratória dos dados (`exploration/`)<br>• Efeito de hover e tooltips<br>• Refatoração geral e reorganização de estilos<br>• Correção de bugs identificados            |
+| João Villas       | • `dataLoader.js`: carregamento assíncrono e normalização de JSON<br>• `standingsUtils.js`: filtros de temporada, pilotos e métricas<br>• Dropdowns e slider<br>• Scraper equipes<br>• Cards de estatísticas |
+| Marcelo Angelo    | • Estrutura inicial em Svelte (`+page.svelte`)<br>• Componente `FullScreen.svelte` e estilização global<br>• `SeasonChart.svelte` (visualização principal)<br>• Animações e thumbnails<br>• Scraper fotos dos pilotos<br>• Ajustes de CSS |
+| Todos os membros  | • Testes funcionais finais da visualização |
+
+Os membros da equipe gastaram em média 3 horas para cada uma das tasks listadas acima.
