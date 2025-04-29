@@ -11,9 +11,9 @@ from tqdm import tqdm   # barra de progresso elegante
 # --------------------------------------------------------------------------- #
 # 1. CONFIGURAÇÃO GERAL
 # --------------------------------------------------------------------------- #
-ROOT          = Path("img")
+ROOT          = Path("static/images")
 DRIVERS_DIR   = ROOT / "drivers"
-TEAMS_DIR     = ROOT / "teams"
+TEAMS_DIR     = ROOT / "constructors"
 DRIVERS_MAP   = DRIVERS_DIR / "drivers_mapping.json"
 TEAMS_LOGOS   = TEAMS_DIR / "constructors_logos.json"
 

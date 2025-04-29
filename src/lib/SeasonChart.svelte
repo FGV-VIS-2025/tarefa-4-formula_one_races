@@ -7,54 +7,15 @@
       offset,
   } from '@floating-ui/dom';
   import { createEventDispatcher } from "svelte";
-  const CLIP_ID = "driver-thumb-clip";
-  let topDriverLocal  = null;
-  let topSwapsLocal   = 0;
-  let avgSwapsLocal   = 0;
+  import CardContainer from "$lib/CardContainer.svelte";
+  import constructorsLogos from "$lib/assets/img/teams/constructors_logos.json";
+  import { base } from "$app/paths";
 
-  const norm = (str) =>
-  str
-    .normalize("NFD")               // separa acento
-    .replace(/[\u0300-\u036f]/g, "")// remove marcas
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");     // tira espaços, hífens, etc.
-
-const driverPics = import.meta.glob(
-    "/src/lib/assets/img/drivers/*.{png,jpg,jpeg}",
-    { eager: true, as: "url" }
-  );
-
-  const teamPics = import.meta.glob(
-    "/src/lib/assets/img/teams/*.{png,jpg,jpeg}",
-    { eager: true, as: "url" }
-  );
-
-/* ▼ 1B. Constrói dicionários  { "Nome Sobrenome": url } */
- const imgByDriver = {};
- for (const [path, url] of Object.entries(driverPics)) {
-   // tenta extrair o nome após o underscore
-   const match = path.match(/\/drivers\/\d+_([^\.]+)\./);
-   if (match) {
-     const raw = match[1];
-     imgByDriver[norm(raw)] = url;
-   }
- }
-
- const imgByTeam = {};
- for (const [path, url] of Object.entries(teamPics)) {
-   const match = path.match(/\/teams\/\d+_([^\.]+)\./);
-   if (match) {
-     const raw = match[1];
-     imgByTeam[norm(raw)] = url;
-   }
- }
-  const dispatch = createEventDispatcher();
 
   export let f1data = {};
 
   let vizContainer;
 
-  
   let seasons = [];
   $: seasons = getSeasons(f1data);
 
@@ -119,14 +80,6 @@ const driverPics = import.meta.glob(
     g = svg
       .append("g")
       .attr("transform", `translate(${config.margin.left},${config.margin.top})`);
-
-    g.append("defs")
-      .append("clipPath")
-        .attr("id", CLIP_ID)
-      .append("circle")
-        .attr("cx", 12)   /* metade do tamanho que daremos à thumb */
-        .attr("cy", 12)
-        .attr("r", 12);
   
     x = d3
       .scalePoint()
@@ -144,39 +97,46 @@ const driverPics = import.meta.glob(
       .y((d) => y(d.position)); 
   }
 
+  let cardsData = [
+    { title: "Top Driver", value: 0, caption: "Trocas de posição" },
+    { title: "Média de Trocas", value: 0, caption: "Trocas em média" },
+  ];
+
   $: if (standings.length) {
-  const swapsPerDriver = {};
+    // Calculate swaps for each driver
+    const swapsByDriver = d3.rollup(
+      standings,
+      (values) => {
+        let swaps = 0;
+        for (let i = 1; i < values.length; i++) {
+          if (values[i].position !== values[i - 1].position) {
+            swaps++;
+          }
+        }
+        return swaps;
+      },
+      (d) => d[mode]
+    );
 
-  /* se não existir positionChange, deriva por diferença entre corridas */
-  standings.forEach(d => {
-    const key = d.driver;
-    if (!swapsPerDriver[key]) swapsPerDriver[key] = 0;
+    // Find the driver with the most swaps
+    const [topDriver, topSwaps] = Array.from(swapsByDriver).reduce(
+      (max, current) => (current[1] > max[1] ? current : max),
+      ["", 0]
+    );
 
-    if (d.hasOwnProperty("positionChange")) {
-      swapsPerDriver[key] += Math.abs(d.positionChange ?? 0);
-    } else {
-      // diferença da posição nesta corrida para a corrida anterior
-      const prev = standings.find(p => p.driver === key && p.round === d.round - 1);
-      if (prev) swapsPerDriver[key] += Math.abs(prev.position - d.position);
-    }
-  });
+    // Calculate the average swaps
+    const totalSwaps = Array.from(swapsByDriver.values()).reduce(
+      (sum, swaps) => sum + swaps,
+      0
+    );
+    const avgSwaps = (totalSwaps / swapsByDriver.size).toFixed(2);
 
-  const entries = Object.entries(swapsPerDriver).sort((a, b) => b[1] - a[1]);
-
-  topDriverLocal = entries[0]?.[0] ?? null;
-  topSwapsLocal  = entries[0]?.[1] ?? 0;
-
-  const total = entries.reduce((s, [, v]) => s + v, 0);
-  avgSwapsLocal = entries.length ? Number((total / entries.length).toFixed(1)) : 0;
-
-  dispatch("metrics", {
-    topDriver: topDriverLocal,
-    topSwaps : topSwapsLocal,
-    avgSwaps : avgSwapsLocal,
-    season   : season          // opcional — mantém a info da temporada
-  });
-}
-
+    cardsData = [
+      { title: topDriver, value: topSwaps, caption: "Trocas de posição" },
+      { title: "Média de Trocas", value: avgSwaps, caption: "Trocas em média" },
+    ];
+  }
+ 
   // Atualiza o gráfico
   let clickedEntitys = [];
   $: mode, clickedEntitys = []; // Reset clickedEntitys when mode changes
@@ -284,61 +244,7 @@ const driverPics = import.meta.glob(
       })
       .style("dominant-baseline", "middle");
 
-    const thumbs = g.selectAll(".end-thumb").data(series, d => d.key);
-    thumbs.exit().remove();
-
-    thumbs.enter()
-      .append("image")
-      .attr("class", "end-thumb")
-      .attr("width", 24)
-      .attr("height", 24)
-      .attr("clip-path", `url(#${CLIP_ID})`)
-    .merge(thumbs)
-         .attr("href",       d => thumbPath(d.key) || null)
-         .attr("xlink:href", d => thumbPath(d.key) || null)         // muda se a temporada muda
-      .attr("opacity", d =>
-        clickedEntitys.length === 0 || clickedEntitys.includes(d.key)
-          ? 1 : config.opacity )
-      .attr("onerror", "this.remove()")
-      .attr("x", d => {
-        const last = d.values.find(v => v.round === currentRound) 
-                  || d.values[d.values.length - 1];
-        return x(last.round) - 12;                      // centraliza
-      })
-      .attr("y", d => {
-        const last = d.values.find(v => v.round === currentRound) 
-                  || d.values[d.values.length - 1];
-        return y(last.position) - 12;
-      });
   }
-
-  $: if (g && series.length) {
-  const thumbs = g.selectAll(".end-thumb");
-
-  thumbs
-    .attr("x", d => {
-      const last =
-        d.values.find(v => v.round === currentRound) ||
-        d.values[d.values.length - 1];
-      return x(last.round) - 12;
-    })
-    .attr("y", d => {
-      const last =
-        d.values.find(v => v.round === currentRound) ||
-        d.values[d.values.length - 1];
-      return y(last.position) - 12;
-    })
-    .raise();
-
-  /* se quiser que o label acompanhe também: */
-  const labels = g.selectAll(".end-label");
-  labels.attr("y", d => {
-    const last =
-      d.values.find(v => v.round === currentRound) ||
-      d.values[d.values.length - 1];
-    return y(last.position);
-  });
-}
 
   /************************************************
   Tooltips
@@ -436,12 +342,20 @@ const driverPics = import.meta.glob(
     <button class="play-pause-button" on:click={togglePlay}>
       {playing ? "Pausar" : "Play"}
     </button>
+    <CardContainer cardsData={cardsData} />
   </div>
   <div
     bind:this={vizContainer}
     id="season-chart-container"
   />
   <div class="info tooltip" hidden={hoveredIndex === -1}  bind:this={entityTooltip} style="top: {cursor.y}px; left: {cursor.x}px">
+    {#if hoveredEntity.name}
+      <img 
+      src={`${base}/images/${mode}s/${hoveredEntity.name.replace(' ', '_')}.jpg`} 
+      alt={hoveredEntity.name}
+      class="thumb" 
+      />
+    {/if}
     <dt>{(mode == 'driver')?'Piloto':'Construtor'}</dt>
     <dd><a href="{ hoveredEntity.url }" target="_blank">{ hoveredEntity.name }</a></dd>
     
@@ -464,8 +378,6 @@ const driverPics = import.meta.glob(
 
     <dt>Vitórias</dt>
     <dd>{ hoveredEntity.wins }</dd>
-
-    <!-- Add: Time, author, lines edited -->
 </div>    
 </div>
 
@@ -479,14 +391,16 @@ const driverPics = import.meta.glob(
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
+    padding: 20px;
+    gap: 20px;
   }
 
   .controls {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-around;
     gap: 20px;
     width: 100%;
     height: 50px;
@@ -577,5 +491,20 @@ const driverPics = import.meta.glob(
     position: fixed;
     top: 1em;
     left: 1em;
+  }
+  .cards {
+    height: 65px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  img.thumb {
+    grid-column: span 2;
+    justify-self: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto;
   }
 </style>
