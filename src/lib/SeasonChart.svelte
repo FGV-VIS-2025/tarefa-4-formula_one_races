@@ -250,6 +250,12 @@
   $: hoveredEntity = entities[hoveredIndex] ?? hoveredEntity ?? {};
 
   let cursor = {x: 0, y: 0};
+  const cusorOffset = 5;
+  function handleMouseMove(event) {
+    cursor.x = event.clientX + cusorOffset;
+    cursor.y = event.clientY + cusorOffset;
+  }
+  window.addEventListener("mousemove", handleMouseMove);
 
   let entityTooltip;
   let tooltipPosition = {x: 0, y: 0};
@@ -257,7 +263,6 @@
     let hoveredDot = evt.target;
     if (evt.type === "mouseenter") {
         hoveredIndex = index;
-        cursor = {x: evt.x, y: evt.y};
         tooltipPosition = await computePosition(hoveredDot, entityTooltip, {
             strategy: "fixed", // because we use position: fixed
             middleware: [
@@ -348,9 +353,10 @@
   <div class="info tooltip" hidden={hoveredIndex === -1}  bind:this={entityTooltip} style="top: {cursor.y}px; left: {cursor.x}px">
     {#if hoveredEntity.name}
       <img 
-      src={`${base}/images/${mode}s/${hoveredEntity.name.replace(' ', '_')}.jpg`} 
+      src={`${base}/images/${mode}s/${hoveredEntity.id}.png`}
       alt={hoveredEntity.name}
       class="thumb" 
+      onerror={`this.src='${base}/images/unknown.png';`}
       />
     {/if}
     <dt>{(mode == 'driver')?'Piloto':'Construtor'}</dt>

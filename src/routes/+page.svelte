@@ -68,6 +68,7 @@
   h1 {
     text-align: center;
     margin-top: 20px;
+    font-family: var(--font-f1);
   }
 
   .description {
