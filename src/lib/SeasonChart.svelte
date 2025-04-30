@@ -49,7 +49,7 @@
 
   const config = {
     width: 800,
-    height: 360,
+    height: 350,
     margin: { top: 50, right: 140, bottom: 40, left: 50 },
     transitionMs: 500,
     opacity: 0.3,
@@ -157,7 +157,8 @@
       .attr("y", 20)  // Distance from top
       .attr("text-anchor", "middle") // Center the text
       .style("font-size", "1em")
-      .style("font-family", "sans-serif")
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
       .text(`Histórico de Classificação da Temporada de ${(mode == "driver")?'Pilotos':'Construtores'} ${season}`);
 
     x.domain(rounds);
@@ -167,7 +168,9 @@
       .attr("text-anchor", "middle")
       .attr("x", config.width / 2)
       .attr("y", config.height - 6)
-      .text("Corrida");
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
+      .text("Rodada");
       
     y.domain([d3.max(standings, (d) => d.position) + 1, 1]);
     svg.selectAll(".y.label").remove();
@@ -178,6 +181,8 @@
       .attr("x", -config.height / 2)
       .attr("dy", ".75em")
       .attr("transform", "rotate(-90)")
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
       .text("Classificação");
 
     g.selectAll(".axis").remove();
@@ -185,17 +190,21 @@
       .append("g")
       .attr("class", "axis axis-x")
       .attr("transform", `translate(0,${innerH})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0));
+      .call(d3.axisBottom(x).tickSizeOuter(0))
+      .selectAll("text")
+      .style("font-size", "0.4rem"); // Adjust font size for x-axis labels
     g
       .append("g")
       .attr("class", "axis axis-y")
       .call(
-        d3
-          .axisLeft(y)
-          .tickValues(ranks)
-          .tickFormat(d3.format("d"))
-          .tickSizeOuter(0)
-      );
+      d3
+        .axisLeft(y)
+        .tickValues(ranks)
+        .tickFormat(d3.format("d"))
+        .tickSizeOuter(0)
+      )
+      .selectAll("text")
+      .style("font-size", "0.4rem"); // Adjust font size for y-axis labels
     
     const lineGroup = g.selectAll(".series").data(series, (d) => d.key);
     lineGroup.exit().remove();
@@ -222,7 +231,8 @@
       .append("text")
       .attr("class", "end-label")
       .merge(labels)
-      .style("font-size", "0.75rem")
+      .style("font-size", "0.5rem")
+      .style("fill", "var(--color-text)") // Set text color
       .style('cursor', 'pointer')
       .attr("x", innerW + 5)
       .text((d) => `${d.values[d.values.length - 1].position.toString().padStart(2, '0')} - ${d.key}`)
@@ -386,9 +396,8 @@
 
 <style lang="scss">
   .graph-container {
-    border: 2px solid #ddd;
     border-radius: 8px;
-    background-color: #fff;
+    background-color: var(--color-background-light);
     width: 100%;
     height: 100%;
     display: flex;
@@ -399,6 +408,12 @@
     gap: 20px;
   }
 
+  .graph-container :global(svg),
+  .graph-container :global(canvas) {
+    width: auto;
+    max-height: 100%;
+  }
+
   .controls {
     display: flex;
     flex-direction: row;
@@ -406,7 +421,7 @@
     justify-content: space-around;
     gap: 20px;
     width: 100%;
-    height: 50px;
+    height: 10%;
     padding: 0 10px;
   }
 
@@ -421,8 +436,8 @@
   .controls .play-pause-button {
     padding: 10px 16px;
     border: none;
-    background-color: #333;
-    color: #fff;
+    background-color: var(--color-dark-light);
+    color: var(--color-text);
     border-radius: 4px;
     transition: background-color 0.2s ease;
     cursor: pointer;
@@ -439,27 +454,37 @@
     background-color: #555;
   }
 
-  .controls input[type="range"] {
+  #round-slider {
     -webkit-appearance: none;
     width: 150px;
-    height: 4px;
-    background: #333;
+    background: var(--color-dark-light);
     border-radius: 2px;
     cursor: pointer;
+    height: 5px;
   }
-  .controls input[type="range"]::-webkit-slider-thumb,
-  .controls input[type="range"]::-moz-range-thumb {
+  
+  #round-slider::-webkit-slider-thumb{
+    -webkit-appearance: none;
     width: 12px;
     height: 12px;
-    background: #fff;
+    background: var(--color-text);
     border-radius: 50%;
     cursor: pointer;
-    margin-top: -4px;
+    margin: 3px 0;
+  }
+
+  #round-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: var(--color-text);
+    border-radius: 50%;
+    cursor: pointer;
+    margin: 3px 0;
   }
 
   #season-chart-container {
     width: 100%;
-    height: 100%;
+    height: 90%;
     display: flex;
     align-items: center;
     justify-content: center;
