@@ -11,6 +11,12 @@
 
   export let f1data = {};
 
+ let colorScale;
+
+ function clearSelections() {
+        clickedEntitys = [];
+  }
+
   let vizContainer;
 
   let seasons = [];
@@ -25,6 +31,19 @@
   let standings = [];
   $: standings = standingsBySeason(f1data, season, mode);
 
+  let previousMode = mode;
+  let previousSeason = season;
+
+  $: if (mode !== previousMode) {
+    clickedEntitys = [];
+    previousMode = mode;
+  }
+
+$: if (season !== previousSeason) {
+    clickedEntitys = [];
+    previousSeason = season;
+  }
+
   let maxRound = 1;
   let currentRound = 1;
   let rounds = [];
@@ -36,6 +55,15 @@
   $: season, maxRound = Math.max(...standings.map(d => d.round));
   if (season){
     dispatch("seasonChange", { season });
+  }
+
+  $: {
+    const keys = mode === 'driver'
+      ? [...new Set(standings.map(d => entities[d[mode]].constructor))]
+      : [...new Set(standings.map(d => d[mode]))];
+    colorScale = d3.scaleOrdinal()
+      .domain(keys)
+      .range(d3.schemeTableau10);
   }
 
   function thumbPath(name) {
@@ -354,8 +382,12 @@
     <button class="play-pause-button" on:click={togglePlay}>
       {playing ? "Pausar" : "Play"}
     </button>
+       <button class="clear-button" on:click={clearSelections}>
+            Limpar seleção
+          </button>
     <CardContainer cardsData={cardsData} />
   </div>
+
   <div
     bind:this={vizContainer}
     id="season-chart-container"
@@ -534,5 +566,17 @@
     height: 100px;
     border-radius: 50%;
     margin: 0 auto;
+  }
+  .controls .clear-button {
+    padding: 10px 16px;
+    border: none;
+    background-color: var(--color-dark-light);
+    color: var(--color-text);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .controls .clear-button:hover {
+    background-color: #555;
   }
 </style>
