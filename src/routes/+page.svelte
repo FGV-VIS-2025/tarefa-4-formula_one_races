@@ -3,7 +3,6 @@
   import { fade, slide } from "svelte/transition";
   import SeasonChart from "$lib/SeasonChart.svelte";
   import VariationHeatmap from "$lib/charts/VariationHeatmap.svelte";
-  import PositionVolatilityChart from "$lib/charts/PositionVolatilityChart.svelte";
   import { loadData } from "$lib/dataLoader.js";
   import { base } from "$app/paths";
 

@@ -11,8 +11,6 @@
 
   export let f1data = {};
 
- let colorScale;
-
  function clearSelections() {
         clickedEntitys = [];
   }
@@ -51,24 +49,26 @@ $: if (season !== previousSeason) {
 
   let entities = {};
   $: entities = getEntities(f1data, season, mode, currentRound);
+  
+  let colorScheme;
+  $: if (entities) {
+    const defaultColorScheme = [
+      "#e6194b",  "#3cb44b",  "#ffe119",  "#4363d8",  "#f58231",
+      "#911eb4",  "#46f0f0",  "#f032e6",  "#bcf60c",  "#fabebe",
+      "#008080",  "#e6beff",  "#9a6324",  "#fffac8",
+      "#aaffc3",  "#808000",  "#ffd8b1",  "#808080",
+      "#ffffff",  "#ff7f00",  "#1f78b4",  "#b2df8a",
+      "#6a3d9a",  "#fb9a99",  "#33a02c",  "#e31a1c",  "#a6cee3",
+    ]
+    colorScheme = Object.keys(entities).reduce((acc, key, i) => {
+      acc[key] = defaultColorScheme[i % defaultColorScheme.length];
+      return acc;
+    }, {});
+  }
 
   $: season, maxRound = Math.max(...standings.map(d => d.round));
   if (season){
     dispatch("seasonChange", { season });
-  }
-
-  $: {
-    const keys = mode === 'driver'
-      ? [...new Set(standings.map(d => entities[d[mode]].constructor))]
-      : [...new Set(standings.map(d => d[mode]))];
-    colorScale = d3.scaleOrdinal()
-      .domain(keys)
-      .range(d3.schemeTableau10);
-  }
-
-  function thumbPath(name) {
-    const key = norm(name);
-    return mode === "driver" ? imgByDriver[key] : imgByTeam[key];
   }
   
   $: currentRound = maxRound;
@@ -79,8 +79,8 @@ $: if (season !== previousSeason) {
     width: 800,
     height: 350,
     margin: { top: 50, right: 140, bottom: 40, left: 50 },
-    transitionMs: 500,
-    opacity: 0.3,
+    transitionMs: 400,
+    opacity: 0.1,
   }
 
   const innerW = config.width - config.margin.left - config.margin.right;
@@ -237,7 +237,6 @@ $: if (season !== previousSeason) {
     const lineGroup = g.selectAll(".series").data(series, (d) => d.key);
     lineGroup.exit().remove();
     const lineEnter = lineGroup.enter().append("g").attr("class", "series");
-
     lineEnter
       .append("path")
       .attr("class", "line")
@@ -246,7 +245,7 @@ $: if (season !== previousSeason) {
       .merge(lineGroup.select("path.line"))
       .transition()
       .duration(config.transitionMs)
-      .attr("stroke", (d, i) => d3.schemeTableau10[i % 10])
+      .attr("stroke", (d, i) => colorScheme[d.key])
       .attr("opacity", (d) => 
         clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
       )
