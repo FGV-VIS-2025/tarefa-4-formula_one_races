@@ -46,11 +46,13 @@ export function getEntities(f1data, season, mode, round) {
     let driver = f1data.drivers.filter((e) => e.driverId === entity.driverId)[0];
     let constructor = f1data.constructors.filter((e) => e.constructorId === entity.constructorId)[0];
     if (mode === 'driver') {
+      entities[d].id = driver.driverId;
       entities[d].url = driver.url;
       entities[d].dateOfBirth = driver.dateOfBirth;
       entities[d].nationality = driver.nationality
       entities[d].constructor = constructor.name;
     } else if (mode === 'constructor') {
+      entities[d].id = constructor.constructorId;
       entities[d].url = constructor.url;
       entities[d].nationality = constructor.nationality;
     }
