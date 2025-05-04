@@ -42,12 +42,28 @@
           target="_blank">Jolpica</a
         >
         combinado ao histórico
-        <a href="https://ergast.com/mrd/" target="_blank">Ergast</a>, calculamos
-        quanta as torcas de posição corrida a corrida desde 2000.
+        <a href="https://ergast.com/mrd/" target="_blank">Ergast</a>, calculamos as trocas de posição corrida a corrida desde 2000.
       </p>
       <p>
-        Explore os mini gráfico à direita e depois clique na seta — ou role —
-        para mergulhar e explorar no detalhe esse fenômeno.
+        Olhando o minigráfico à direita, a resposta é direta: sim, a tabela muda bastante no começo da temporada.
+        Matematicamente falando, a volatilidade no começo acaba sendo alta porque todos os pilotos estão com pontuações próximas.
+        Ao longo da temporada os gaps de pontos começam a ficar grandes e é difícil se recuperar.
+      </p>
+      <p>
+        Resumindo: a tabela muda bastante, mas fazer um bom começo ajuda a ter um bom final.
+      </p>
+      <p>
+        Explore os mini gráfico à direita e depois role para baixo e veja o gráfico completo de cada temporada.
+        Mergulhe na nossa base de dados e verifique você mesmo esse fenômeno.
+      </p>
+      <p>
+        Feito por:
+        <a href="https://github.com/wobetec">Esdras Cavalcanti</a>,
+        <a href="https://github.com/Vilasz">João Felipe</a> e
+        <a href="https://github.com/MasFz">Marcelo Angelo</a>.
+      </p>
+      <p>
+        Confira nosso repositório no <a href="https://github.com/FGV-VIS-2025/tarefa-4-formula_one_races">GitHub</a>.
       </p>
     </div>
 
