@@ -259,7 +259,7 @@ $: if (season !== previousSeason) {
       .attr("class", "end-label")
       .merge(labels)
       .style("font-size", "0.5rem")
-      .style("fill", "var(--color-text)") // Set text color
+      .style("fill", (d) => colorScheme[d.key])
       .style('cursor', 'pointer')
       .attr("x", innerW + 5)
       .text((d) => `${d.values[d.values.length - 1].position.toString().padStart(2, '0')} - ${d.key}`)
@@ -526,7 +526,7 @@ $: if (season !== previousSeason) {
   .info {
     display: grid;
     grid-template-columns: auto auto;
-    background-color: oklch(100% 0% 0 / 80%);
+    background-color: var(--color-background-light);
     box-shadow: 1px 1px 3px 3px gray;
     border-radius: 5px;
     backdrop-filter: blur(10px);
