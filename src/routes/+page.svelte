@@ -58,12 +58,12 @@
       </p>
       <p>
         Feito por:
-        <a href="https://github.com/wobetec">Esdras Cavalcanti</a>,
-        <a href="https://github.com/Vilasz">João Felipe</a> e
-        <a href="https://github.com/MasFz">Marcelo Angelo</a>.
+        <a href="https://github.com/wobetec" target="_blank">Esdras Cavalcanti</a>,
+        <a href="https://github.com/Vilasz" target="_blank">João Felipe</a> e
+        <a href="https://github.com/MasFz" target="_blank">Marcelo Angelo</a>.
       </p>
       <p>
-        Confira nosso repositório no <a href="https://github.com/FGV-VIS-2025/tarefa-4-formula_one_races">GitHub</a>.
+        Confira nosso repositório no <a href="https://github.com/FGV-VIS-2025/tarefa-4-formula_one_races" target="_blank">GitHub</a>.
       </p>
     </div>
 
