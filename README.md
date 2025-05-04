@@ -2,6 +2,8 @@
 
 Depois de uma análise exploratória dos dados da F1 utilizando a API [Jolpica](https://github.com/jolpica/jolpica-f1), decidimos responder a pergunta: **"Como os pilotos trocam de posição durante uma corrida?"**. Essa pergunta foi motivada sobretudo pelo início de temporada onde constuma-se dizer que nada está definido ainda.
 
+Utilizamos como inspiração gráficos comuns utilizados em campeonatos de futebol para entender as mudanças no ranking.
+
 Este projeto apresenta uma **linha do tempo interativa** que mostra, corrida a corrida, como pilotos trocam de posição durante uma temporada da Fórmula 1 (2000-2025). Além de uma breve explicação para contextualizar o leitor, bem como um gráfico secundário com uma resposta mais deireta para a pergunta inicial.
 
 As principais características são:
@@ -37,3 +39,8 @@ Todo o _dataset_ é pré-coletado via *scrapers* (API, RaceFans, Wikipedia, Seek
 | Todos os membros  | • Testes funcionais finais da visualização                                                                                                                                                                                                |
 
 Os membros da equipe gastaram em média 3 horas para cada uma das tasks listadas acima.
+
+
+## Uso de IA
+
+Utilizamos IAs sobre tudo Copilot para auxiliar na escrita de código. Contudo, todo o código foi revisado, garantindo tanto o entendimento do que estava sendo utilizado quanto garantir a qualidade do mesmo.
