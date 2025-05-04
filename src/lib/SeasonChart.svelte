@@ -162,7 +162,7 @@
       ];
 
       const metricDescriptions = {
-      "Trocas de posição": "Número de vezes que o piloto/construtor mudou de posição de uma corrida para a próxima ao longo da temporada.",
+      "Trocas de posição": "Piloto que mais trocou de posição e quantas vezes o mesmo teve sua posição alterada.",
       "Média de Trocas": "Total de trocas de posição dividido pelo número de pilotos/construtores, indicando a volatilidade média."
     };
 
