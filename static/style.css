@@ -4,20 +4,26 @@
     --color-white: #F2F2F2;
     --color-light-gray: #D9D9D9;
 
-    --color-background: var(--color-light-gray);
+    --color-background: #0d0d0d;
+    --color-background-light: #202020;
+    --color-dark-light: #363636;
+    --color-text: #f0f0f0;
 
     --font-f1: "Orbitron", sans-serif;
-    --font-default: "Roboto Condensed", sans-serif;
+    --font-default: "Roboto Condensed", Arial, Helvetica, sans-serif;
 }
 
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: var(--font-default);
+    color: var(--color-text);
 }
 
-html, body{
-    height:100%;
+html,
+body {
+    height: 100%;
     background-color: var(--color-background);
+    overflow: hidden
 }

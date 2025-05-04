@@ -11,6 +11,10 @@
 
   export let f1data = {};
 
+ function clearSelections() {
+        clickedEntitys = [];
+  }
+
   let vizContainer;
 
   let seasons = [];
@@ -25,6 +29,19 @@
   let standings = [];
   $: standings = standingsBySeason(f1data, season, mode);
 
+  let previousMode = mode;
+  let previousSeason = season;
+
+  $: if (mode !== previousMode) {
+    clickedEntitys = [];
+    previousMode = mode;
+  }
+
+$: if (season !== previousSeason) {
+    clickedEntitys = [];
+    previousSeason = season;
+  }
+
   let maxRound = 1;
   let currentRound = 1;
   let rounds = [];
@@ -32,15 +49,26 @@
 
   let entities = {};
   $: entities = getEntities(f1data, season, mode, currentRound);
+  
+  let colorScheme;
+  $: if (entities) {
+    const defaultColorScheme = [
+      "#e6194b",  "#3cb44b",  "#ffe119",  "#4363d8",  "#f58231",
+      "#911eb4",  "#46f0f0",  "#f032e6",  "#bcf60c",  "#fabebe",
+      "#008080",  "#e6beff",  "#9a6324",  "#fffac8",
+      "#aaffc3",  "#808000",  "#ffd8b1",  "#808080",
+      "#ffffff",  "#ff7f00",  "#1f78b4",  "#b2df8a",
+      "#6a3d9a",  "#fb9a99",  "#33a02c",  "#e31a1c",  "#a6cee3",
+    ]
+    colorScheme = Object.keys(entities).reduce((acc, key, i) => {
+      acc[key] = defaultColorScheme[i % defaultColorScheme.length];
+      return acc;
+    }, {});
+  }
 
   $: season, maxRound = Math.max(...standings.map(d => d.round));
   if (season){
     dispatch("seasonChange", { season });
-  }
-
-  function thumbPath(name) {
-    const key = norm(name);
-    return mode === "driver" ? imgByDriver[key] : imgByTeam[key];
   }
   
   $: currentRound = maxRound;
@@ -49,10 +77,10 @@
 
   const config = {
     width: 800,
-    height: 360,
+    height: 350,
     margin: { top: 50, right: 140, bottom: 40, left: 50 },
-    transitionMs: 500,
-    opacity: 0.3,
+    transitionMs: 400,
+    opacity: 0.1,
   }
 
   const innerW = config.width - config.margin.left - config.margin.right;
@@ -157,7 +185,8 @@
       .attr("y", 20)  // Distance from top
       .attr("text-anchor", "middle") // Center the text
       .style("font-size", "1em")
-      .style("font-family", "sans-serif")
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
       .text(`Histórico de Classificação da Temporada de ${(mode == "driver")?'Pilotos':'Construtores'} ${season}`);
 
     x.domain(rounds);
@@ -167,7 +196,9 @@
       .attr("text-anchor", "middle")
       .attr("x", config.width / 2)
       .attr("y", config.height - 6)
-      .text("Corrida");
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
+      .text("Rodada");
       
     y.domain([d3.max(standings, (d) => d.position) + 1, 1]);
     svg.selectAll(".y.label").remove();
@@ -178,6 +209,8 @@
       .attr("x", -config.height / 2)
       .attr("dy", ".75em")
       .attr("transform", "rotate(-90)")
+      .style("font-family", "var(--font-f1)")
+      .style("fill", "var(--color-text)") // Set text color
       .text("Classificação");
 
     g.selectAll(".axis").remove();
@@ -185,31 +218,37 @@
       .append("g")
       .attr("class", "axis axis-x")
       .attr("transform", `translate(0,${innerH})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0));
+      .call(d3.axisBottom(x).tickSizeOuter(0))
+      .selectAll("text")
+      .style("font-size", "0.4rem"); // Adjust font size for x-axis labels
     g
       .append("g")
       .attr("class", "axis axis-y")
       .call(
-        d3
-          .axisLeft(y)
-          .tickValues(ranks)
-          .tickFormat(d3.format("d"))
-          .tickSizeOuter(0)
-      );
+      d3
+        .axisLeft(y)
+        .tickValues(ranks)
+        .tickFormat(d3.format("d"))
+        .tickSizeOuter(0)
+      )
+      .selectAll("text")
+      .style("font-size", "0.4rem"); // Adjust font size for y-axis labels
     
     const lineGroup = g.selectAll(".series").data(series, (d) => d.key);
     lineGroup.exit().remove();
     const lineEnter = lineGroup.enter().append("g").attr("class", "series");
-
     lineEnter
       .append("path")
       .attr("class", "line")
       .attr("fill", "none")
       .attr("stroke-width", 1.5)
       .merge(lineGroup.select("path.line"))
+      .on("mouseenter", (event, d) => nameInteraction(d.key, event))
+      .on("mouseleave", (event, d) => nameInteraction(d.key, event))
+      .on("click", (event, d) => nameInteraction(d.key, event))
       .transition()
       .duration(config.transitionMs)
-      .attr("stroke", (d, i) => d3.schemeTableau10[i % 10])
+      .attr("stroke", (d, i) => colorScheme[d.key])
       .attr("opacity", (d) => 
         clickedEntitys.length === 0 || clickedEntitys.includes(d.key) ? 1 : config.opacity
       )
@@ -222,7 +261,8 @@
       .append("text")
       .attr("class", "end-label")
       .merge(labels)
-      .style("font-size", "0.75rem")
+      .style("font-size", "0.5rem")
+      .style("fill", (d) => colorScheme[d.key])
       .style('cursor', 'pointer')
       .attr("x", innerW + 5)
       .text((d) => `${d.values[d.values.length - 1].position.toString().padStart(2, '0')} - ${d.key}`)
@@ -344,8 +384,12 @@
     <button class="play-pause-button" on:click={togglePlay}>
       {playing ? "Pausar" : "Play"}
     </button>
+       <button class="clear-button" on:click={clearSelections}>
+            Limpar seleção
+          </button>
     <CardContainer cardsData={cardsData} />
   </div>
+
   <div
     bind:this={vizContainer}
     id="season-chart-container"
@@ -386,9 +430,8 @@
 
 <style lang="scss">
   .graph-container {
-    border: 2px solid #ddd;
     border-radius: 8px;
-    background-color: #fff;
+    background-color: var(--color-background-light);
     width: 100%;
     height: 100%;
     display: flex;
@@ -399,6 +442,12 @@
     gap: 20px;
   }
 
+  .graph-container :global(svg),
+  .graph-container :global(canvas) {
+    width: auto;
+    max-height: 100%;
+  }
+
   .controls {
     display: flex;
     flex-direction: row;
@@ -406,7 +455,7 @@
     justify-content: space-around;
     gap: 20px;
     width: 100%;
-    height: 50px;
+    height: 10%;
     padding: 0 10px;
   }
 
@@ -421,8 +470,8 @@
   .controls .play-pause-button {
     padding: 10px 16px;
     border: none;
-    background-color: #333;
-    color: #fff;
+    background-color: var(--color-dark-light);
+    color: var(--color-text);
     border-radius: 4px;
     transition: background-color 0.2s ease;
     cursor: pointer;
@@ -439,27 +488,37 @@
     background-color: #555;
   }
 
-  .controls input[type="range"] {
+  #round-slider {
     -webkit-appearance: none;
     width: 150px;
-    height: 4px;
-    background: #333;
+    background: var(--color-dark-light);
     border-radius: 2px;
     cursor: pointer;
+    height: 5px;
   }
-  .controls input[type="range"]::-webkit-slider-thumb,
-  .controls input[type="range"]::-moz-range-thumb {
+  
+  #round-slider::-webkit-slider-thumb{
+    -webkit-appearance: none;
     width: 12px;
     height: 12px;
-    background: #fff;
+    background: var(--color-text);
     border-radius: 50%;
     cursor: pointer;
-    margin-top: -4px;
+    margin: 3px 0;
+  }
+
+  #round-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: var(--color-text);
+    border-radius: 50%;
+    cursor: pointer;
+    margin: 3px 0;
   }
 
   #season-chart-container {
     width: 100%;
-    height: 100%;
+    height: 90%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -470,7 +529,7 @@
   .info {
     display: grid;
     grid-template-columns: auto auto;
-    background-color: oklch(100% 0% 0 / 80%);
+    background-color: var(--color-background-light);
     box-shadow: 1px 1px 3px 3px gray;
     border-radius: 5px;
     backdrop-filter: blur(10px);
@@ -509,5 +568,17 @@
     height: 100px;
     border-radius: 50%;
     margin: 0 auto;
+  }
+  .controls .clear-button {
+    padding: 10px 16px;
+    border: none;
+    background-color: var(--color-dark-light);
+    color: var(--color-text);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .controls .clear-button:hover {
+    background-color: #555;
   }
 </style>
